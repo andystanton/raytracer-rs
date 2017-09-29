@@ -1,0 +1,16 @@
+[package]
+name = "raytracer"
+version = "0.1.0"
+
+[profile.release]
+debug = true
+
+[dependencies]
+cgmath = "0.14"
+clap = "2.25"
+image = "0.14"
+log = "0.3"
+noise = { git = "https://github.com/brendanzab/noise-rs.git", rev = "42753cbcc857655f211ecf2658f492931cb252fb" }
+num_cpus = "1.6"
+rand = "0.3"
+stderrlog = "0.2"
