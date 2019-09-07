@@ -1,4 +1,6 @@
 target
 .idea
+.cargo
 logs
 CMakeLists.txt
+*.png
