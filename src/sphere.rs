@@ -1,11 +1,10 @@
-use hitable::{
+use crate::hitable::{
     Hitable,
     HitRecord,
 };
-use ray::Ray3;
-use material::Material;
-use timeutil::TimeUtil;
-use aabb::AABB;
+use crate::ray::Ray3;
+use crate::material::Material;
+use crate::aabb::AABB;
 
 use cgmath::{
     Point3,

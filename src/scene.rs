@@ -1,16 +1,16 @@
-use camera::Camera;
-use sphere::{
+use crate::camera::Camera;
+use crate::sphere::{
     Sphere,
     MovingSphere,
 };
-use quad::Quad;
-use pyramid::Pyramid;
-use teapot::Teapot;
-use hitable::HitableList;
-use material::Material;
-use plane::Plane;
-use randomutil::seedable_unit_distribution;
-use texture::{
+use crate::quad::Quad;
+use crate::pyramid::Pyramid;
+use crate::teapot::Teapot;
+use crate::hitable::HitableList;
+use crate::material::Material;
+use crate::plane::Plane;
+use crate::randomutil::seedable_unit_distribution;
+use crate::texture::{
     ConstantTexture,
     ChequeredTexture,
     NoiseTexture,
@@ -50,7 +50,7 @@ pub fn random_scene(aspect: f32, motion_blur: bool) -> (HitableList, Camera) {
             Quaternion::from_angle_y(Deg(10f32)),
             Material::TexturedLambertian {
                 texture: ChequeredTexture::new(
-                    ConstantTexture::new(Vector3::new(0.2, 0.3, 0.1)),
+                    ConstantTexture::new(Vector3::new(0.1, 0.1, 0.1)),
                     ConstantTexture::new(Vector3::new(0.9, 0.9, 0.9)),
                 )
             },

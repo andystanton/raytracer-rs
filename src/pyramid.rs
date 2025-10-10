@@ -1,13 +1,13 @@
-use hitable::{
+use crate::hitable::{
     Hitable,
     HitRecord,
     HitableList,
 };
-use ray::Ray3;
-use aabb::AABB;
-use material::Material;
-use triangle::Triangle;
-use quad::Quad;
+use crate::ray::Ray3;
+use crate::aabb::AABB;
+use crate::material::Material;
+use crate::triangle::Triangle;
+use crate::quad::Quad;
 
 use cgmath::{
     Point3,

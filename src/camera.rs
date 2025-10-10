@@ -1,5 +1,5 @@
-use ray::Ray3;
-use randomutil::{
+use crate::ray::Ray3;
+use crate::randomutil::{
     seedable_unit_distribution,
     random_in_unit_disk,
 };
@@ -15,7 +15,7 @@ use std::time::{
     Duration,
     Instant,
 };
-use timeutil::TimeUtil;
+use crate::timeutil::TimeUtil;
 
 #[derive(Copy, Clone)]
 pub struct Camera {

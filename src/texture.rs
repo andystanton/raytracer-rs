@@ -5,18 +5,17 @@ use cgmath::{
 use noise::{
     NoiseFn,
     Perlin,
-    Turbulence,
 };
 
 use std::clone::Clone;
 
 pub trait Texture {
     fn value(&self, u: f32, v: f32, p: Point3<f32>) -> Vector3<f32>;
-    fn box_clone(&self) -> Box<Texture + Send + Sync>;
+    fn box_clone(&self) -> Box<dyn Texture + Send + Sync>;
 }
 
-impl Clone for Box<Texture + Send + Sync> {
-    fn clone(&self) -> Box<Texture + Send + Sync> {
+impl Clone for Box<dyn Texture + Send + Sync> {
+    fn clone(&self) -> Box<dyn Texture + Send + Sync> {
         self.box_clone()
     }
 }
@@ -38,7 +37,7 @@ impl Texture for ConstantTexture {
     fn value(&self, _: f32, _: f32, _: Point3<f32>) -> Vector3<f32> {
         self.colour
     }
-    fn box_clone(&self) -> Box<Texture + Send + Sync> {
+    fn box_clone(&self) -> Box<dyn Texture + Send + Sync> {
         Box::new((*self).clone())
     }
 }
@@ -47,12 +46,12 @@ impl Texture for ConstantTexture {
 
 #[derive(Clone)]
 pub struct ChequeredTexture {
-    pub odd: Box<Texture + Send + Sync>,
-    pub even: Box<Texture + Send + Sync>,
+    pub odd: Box<dyn Texture + Send + Sync>,
+    pub even: Box<dyn Texture + Send + Sync>,
 }
 
 impl ChequeredTexture {
-    pub fn new(odd: Box<Texture + Send + Sync>, even: Box<Texture + Send + Sync>) -> Box<Self> {
+    pub fn new(odd: Box<dyn Texture + Send + Sync>, even: Box<dyn Texture + Send + Sync>) -> Box<Self> {
         Box::new(Self { odd, even })
     }
 }
@@ -72,7 +71,7 @@ impl Texture for ChequeredTexture {
             self.even.value(u, v, p)
         }
     }
-    fn box_clone(&self) -> Box<Texture + Send + Sync> {
+    fn box_clone(&self) -> Box<dyn Texture + Send + Sync> {
         Box::new((*self).clone())
     }
 }
@@ -81,14 +80,14 @@ impl Texture for ChequeredTexture {
 
 #[derive(Clone)]
 pub struct NoiseTexture {
-    perlin: Turbulence<Perlin>,
+    perlin: Perlin,
     scale: f32,
 }
 
 impl NoiseTexture {
     pub fn new(scale: f32) -> Box<Self> {
         Box::new(Self {
-            perlin: Turbulence::new(Perlin::new()),
+            perlin: Perlin::new(rand::random()),
             scale,
         })
     }
@@ -96,10 +95,14 @@ impl NoiseTexture {
 
 impl Texture for NoiseTexture {
     fn value(&self, _: f32, _: f32, p: Point3<f32>) -> Vector3<f32> {
-        Vector3::new(1f32, 1f32, 1f32) * 0.5 * (1f32 + (self.scale * p.z + 10f32 * self.perlin.get([p.x as f64, p.y as f64, p.z as f64]) as f32).sin())
+        // Apply turbulence effect by sampling multiple octaves
+        let turbulence = (0..7).fold(0.0, |acc, _| {
+            acc + self.perlin.get([p.x as f64, p.y as f64, p.z as f64]).abs()
+        });
+        Vector3::new(1f32, 1f32, 1f32) * 0.5 * (1f32 + (self.scale * p.z + 10f32 * turbulence as f32).sin())
     }
 
-    fn box_clone(&self) -> Box<Texture + Send + Sync> {
+    fn box_clone(&self) -> Box<dyn Texture + Send + Sync> {
         Box::new((*self).clone())
     }
 }

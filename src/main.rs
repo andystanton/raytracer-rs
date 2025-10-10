@@ -1,14 +1,3 @@
-extern crate cgmath;
-extern crate rand;
-extern crate image;
-extern crate clap;
-extern crate num_cpus;
-extern crate noise;
-
-#[macro_use]
-extern crate log;
-extern crate stderrlog;
-
 pub mod hitable;
 pub mod sphere;
 pub mod triangle;
@@ -28,90 +17,73 @@ pub mod texture;
 pub mod randomutil;
 pub mod timeutil;
 
-use clap::{
-    Arg,
-    App,
-};
+use clap::Parser;
+
+#[derive(Parser)]
+#[command(name = "Raytracer")]
+#[command(version = "1.0")]
+struct Args {
+    /// Scene to render
+    #[arg(short, long, default_value = "default")]
+    #[arg(value_parser = ["default", "random", "test", "teapot", "motionblur", "2spheres", "2perlinspheres"])]
+    scene: String,
+
+    /// Output file path
+    #[arg(short, long)]
+    out: Option<String>,
+
+    /// Width in pixels
+    #[arg(short = 'x', long, default_value = "64")]
+    nx: u32,
+
+    /// Height in pixels
+    #[arg(short = 'y', long, default_value = "48")]
+    ny: u32,
+
+    /// Samples per pixel
+    #[arg(short = 'p', long, default_value = "100")]
+    samples_per_pixel: u32,
+
+    /// Random seed
+    #[arg(short = 'e', long)]
+    seed: Option<String>,
+
+    /// Output image width (defaults to nx if not specified)
+    #[arg(short, long)]
+    width: Option<u32>,
+
+    /// Output image height (defaults to ny if not specified)
+    #[arg(short = 'h', long)]
+    height: Option<u32>,
+
+    /// Verbose output
+    #[arg(short, long)]
+    verbose: bool,
+}
 
 fn main() {
-    let matches = App::new("Raytracer")
-        .version("1.0")
-        .arg(Arg::with_name("scene")
-            .display_order(0)
-            .short("s")
-            .long("scene")
-            .possible_values(&["default", "random", "test", "teapot", "motionblur", "2spheres", "2perlinspheres"])
-            .default_value("default")
-            .takes_value(true))
-        .arg(Arg::with_name("out")
-            .display_order(1)
-            .short("o")
-            .long("out")
-            .value_name("FILE")
-            .takes_value(true))
-        .arg(Arg::with_name("nx")
-            .display_order(2)
-            .short("x")
-            .long("nx")
-            .default_value("64")
-            .value_name("UINT")
-            .takes_value(true))
-        .arg(Arg::with_name("ny")
-            .display_order(3)
-            .short("y")
-            .long("ny")
-            .default_value("48")
-            .value_name("UINT")
-            .takes_value(true))
-        .arg(Arg::with_name("samples-per-pixel")
-            .display_order(4)
-            .short("p")
-            .long("samples-per-pixel")
-            .default_value("100")
-            .value_name("UINT")
-            .takes_value(true))
-        .arg(Arg::with_name("seed")
-            .display_order(5)
-            .short("e")
-            .long("seed")
-            .value_name("UINT")
-            .takes_value(true))
-        .arg(Arg::with_name("width")
-            .display_order(5)
-            .short("w")
-            .long("width")
-            .value_name("UINT")
-            .takes_value(true))
-        .arg(Arg::with_name("height")
-            .display_order(6)
-            .short("h")
-            .long("height")
-            .value_name("UINT")
-            .takes_value(true))
-        .arg(Arg::with_name("verbose")
-            .display_order(7)
-            .short("v")
-            .long("verbose")
-            .takes_value(false))
-        .get_matches();
+    let args = Args::parse();
 
-    let verbose = matches.is_present("verbose");
-    let nx = matches.value_of("nx").unwrap().parse::<u32>().unwrap();
-    let ny = matches.value_of("ny").unwrap().parse::<u32>().unwrap();
-    let ns = matches.value_of("samples-per-pixel").unwrap().parse::<u32>().unwrap();
-    let width = matches.value_of("width").map_or(nx, |w| w.parse::<u32>().unwrap());
-    let height = matches.value_of("height").map_or(ny, |h| h.parse::<u32>().unwrap());
-    let scene = matches.value_of("scene");
-    let seed = matches.value_of("seed");
-    let out = matches.value_of("out");
+    env_logger::Builder::new()
+        .filter_level(if args.verbose {
+            log::LevelFilter::Debug
+        } else {
+            log::LevelFilter::Warn
+        })
+        .init();
 
-    stderrlog::new()
-        .module(module_path!())
-        .quiet(!verbose)
-        .timestamp(stderrlog::Timestamp::Second)
-        .verbosity(3)
-        .init()
-        .unwrap();
+    let width = args.width.unwrap_or(args.nx);
+    let height = args.height.unwrap_or(args.ny);
 
-    raytracer::trace(nx, ny, width, height, ns, scene, out, seed, verbose);
+    raytracer::trace(
+        args.nx,
+        args.ny,
+        width,
+        height,
+        args.samples_per_pixel,
+        Some(&args.scene),
+        args.out.as_deref(),
+        args.seed.as_deref(),
+        args.verbose,
+    );
 }
