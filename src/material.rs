@@ -1,7 +1,7 @@
-use ray::Ray3;
-use hitable::HitRecord;
-use randomutil;
-use texture::Texture;
+use crate::ray::Ray3;
+use crate::hitable::HitRecord;
+use crate::randomutil;
+use crate::texture::Texture;
 
 use cgmath::{
     Vector3,
@@ -63,7 +63,7 @@ pub enum Material {
         albedo: Vector3<f32>,
     },
     TexturedLambertian {
-        texture: Box<Texture + Send + Sync>,
+        texture: Box<dyn Texture + Send + Sync>,
     },
     Dielectric {
         ref_idx: f32,
@@ -88,7 +88,7 @@ fn refract(v: Vector3<f32>, n: Vector3<f32>, ni_over_nt: f32) -> (Vector3<f32>, 
 fn schlick(cosine: f32, ref_idx: f32) -> f32 {
     let mut r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
     r0 = r0 * r0;
-    r0 + (1.0 - r0) * pow((1.0 - cosine), 5)
+    r0 + (1.0 - r0) * pow(1.0 - cosine, 5)
 }
 
 #[cfg(test)]

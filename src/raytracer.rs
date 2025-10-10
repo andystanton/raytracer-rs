@@ -1,8 +1,8 @@
-use ray::Ray3;
-use scene;
-use randomutil;
-use material;
-use hitable::Hitable;
+use crate::ray::Ray3;
+use crate::scene;
+use crate::randomutil;
+use crate::material;
+use crate::hitable::Hitable;
 
 use cgmath::{
     Vector3,
@@ -24,11 +24,14 @@ use std::sync::{
 };
 use std::io::Write;
 use rand::{
-    Rng,
-    thread_rng,
+    RngCore,
+    rng,
 };
 use std::time::Instant;
 use image;
+use image::imageops::FilterType;
+use image::DynamicImage;
+use log::info;
 use num_cpus;
 
 pub fn trace(nx: u32,
@@ -42,7 +45,7 @@ pub fn trace(nx: u32,
              verbose: bool) {
     let start = Instant::now();
     let aspect = nx as f32 / ny as f32;
-    let seed_val = seed.map(|s| s.parse::<usize>().unwrap()).unwrap_or(thread_rng().next_u32() as usize);
+    let seed_val = seed.map(|s| s.parse::<u64>().unwrap()).unwrap_or(rng().next_u64());
 
     randomutil::thread_seedable_reseed(seed_val);
 
@@ -115,13 +118,11 @@ pub fn trace(nx: u32,
                         output_colour.z.sqrt(),
                     );
 
-                    sub_image.put_pixel(i, inverse_j - (cpu as u32 * rows), image::Rgb {
-                        data: [
-                            (255.99 * output_colour.x) as u8,
-                            (255.99 * output_colour.y) as u8,
-                            (255.99 * output_colour.z) as u8,
-                        ],
-                    });
+                    sub_image.put_pixel(i, inverse_j - (cpu as u32 * rows), image::Rgb([
+                        (255.99 * output_colour.x) as u8,
+                        (255.99 * output_colour.y) as u8,
+                        (255.99 * output_colour.z) as u8,
+                    ]));
                 }
             }
 
@@ -155,12 +156,15 @@ pub fn trace(nx: u32,
             temp_path.join("out.png")
         });
 
-    let ref mut output_file = fs::File::create(&output_path).unwrap();
-
     if width != nx || height != ny {
-        image::ImageRgb8(arc_img.lock().unwrap().clone()).resize_exact(width, height, image::FilterType::CatmullRom).save(output_file, image::PNG).unwrap();
+        DynamicImage::ImageRgb8(arc_img.lock().unwrap().clone())
+            .resize_exact(width, height, FilterType::CatmullRom)
+            .save(&output_path)
+            .unwrap();
     } else {
-        image::ImageRgb8(arc_img.lock().unwrap().clone()).save(output_file, image::PNG).unwrap();
+        DynamicImage::ImageRgb8(arc_img.lock().unwrap().clone())
+            .save(&output_path)
+            .unwrap();
     }
 
     let write_complete = Instant::now();
@@ -174,7 +178,7 @@ pub fn trace(nx: u32,
     writeln!(&mut io::stdout(), "{}", output_path.into_os_string().into_string().unwrap()).unwrap();
 }
 
-fn colour(ray: &Ray3<f32>, hitable: &Hitable, depth: u32) -> Vector3<f32> {
+fn colour(ray: &Ray3<f32>, hitable: &dyn Hitable, depth: u32) -> Vector3<f32> {
         hitable.hit(ray, 0.001, f32::MAX).and_then(|rec| {
             if rec.material.is_some() {
                 return rec.material.clone().map(|material| {

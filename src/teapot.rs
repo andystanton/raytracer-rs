@@ -1,12 +1,12 @@
-use material::Material;
-use triangle::NormalTriangle;
-use hitable::{
+use crate::material::Material;
+use crate::triangle::NormalTriangle;
+use crate::hitable::{
     Hitable,
     HitRecord,
     HitableList,
 };
-use ray::Ray3;
-use aabb::AABB;
+use crate::ray::Ray3;
+use crate::aabb::AABB;
 
 use cgmath::{
     Point3,

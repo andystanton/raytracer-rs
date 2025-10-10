@@ -1,4 +1,4 @@
-use ray::Ray3;
+use crate::ray::Ray3;
 
 use cgmath::Point3;
 

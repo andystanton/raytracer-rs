@@ -1,6 +1,6 @@
-use ray::Ray3;
-use aabb::AABB;
-use material::Material;
+use crate::ray::Ray3;
+use crate::aabb::AABB;
+use crate::material::Material;
 
 use cgmath::{
     Vector3,
@@ -29,7 +29,7 @@ pub trait Hitable {
 }
 
 pub struct HitableList {
-    list: Vec<Box<Hitable + Sync + Send>>,
+    list: Vec<Box<dyn Hitable + Sync + Send>>,
 }
 
 impl HitableList {

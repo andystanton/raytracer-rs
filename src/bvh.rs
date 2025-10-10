@@ -1,10 +1,10 @@
-use hitable::{
+use crate::hitable::{
     Hitable,
     HitRecord,
 };
-use ray::Ray3;
-use aabb::AABB;
-use randomutil::seedable_unit_distribution;
+use crate::ray::Ray3;
+use crate::aabb::AABB;
+use crate::randomutil::seedable_unit_distribution;
 
 use cgmath::Point3;
 
@@ -13,14 +13,14 @@ use std::sync::Arc;
 use std::cmp::Ordering;
 
 pub struct BVHNode {
-    left: Arc<Hitable + Send + Sync>,
-    right: Arc<Hitable + Send + Sync>,
+    left: Arc<dyn Hitable + Send + Sync>,
+    right: Arc<dyn Hitable + Send + Sync>,
     bounding_box: AABB,
 }
 
-type ArcHitable = Arc<Hitable + Send + Sync>;
+type ArcHitable = Arc<dyn Hitable + Send + Sync>;
 
-fn box_axis_compare(axis: usize) -> Box<Fn(&ArcHitable, &ArcHitable) -> Ordering> {
+fn box_axis_compare(axis: usize) -> Box<dyn Fn(&ArcHitable, &ArcHitable) -> Ordering> {
     return Box::new(move |a: &ArcHitable, b: &ArcHitable| {
         a.bounding_box(Instant::now(), Instant::now()).and_then(|box_left| {
             b.bounding_box(Instant::now(), Instant::now()).map(|box_right| {
